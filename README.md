@@ -65,7 +65,8 @@ EMBERDEEP_FONT=/path/to/mono.ttf .venv/bin/python -m emberdeep
 ## Development
 
 Docs live in `docs/`: [player's guide](docs/guide.md),
-[original design plan](docs/design-plan.md).
+[original design plan](docs/design-plan.md),
+[decision log](docs/decision-log.md).
 
 ```sh
 .venv/bin/python -m pytest tests/            # 26 seeded tests, no window needed
