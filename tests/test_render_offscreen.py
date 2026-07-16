@@ -3,7 +3,7 @@
 import tcod
 
 from emberdeep import render, screens, ui
-from emberdeep.constants import CONSOLE_H, CONSOLE_W
+from emberdeep.constants import CONSOLE_H, CONSOLE_W, MAP_H
 from emberdeep.engine import State
 
 
@@ -41,6 +41,23 @@ def test_all_screens_draw_offscreen():
     screens.draw_title(con)
     screens.draw_death(con, state)
     screens.draw_victory(con, state)
+
+
+def test_panel_layout_spacing():
+    """Wide HP values must not jam into the XP label; statuses must not
+    collide with LV — they live on the gear row."""
+    state = State(seed=780)
+    p = state.player
+    p.max_hp = p.hp = 130
+    p.statuses["burning"] = 3
+    con = _console()
+    ui.draw_panel(con, state)
+    stat_row = "".join(chr(c) for c in con.rgb["ch"][:, MAP_H + 1])
+    assert "130/130  XP" in stat_row
+    assert "LV 1" in stat_row
+    gear_row = "".join(chr(c) for c in con.rgb["ch"][:, MAP_H + 2])
+    assert "W: fists" in gear_row
+    assert "BURNING" in gear_row
 
 
 def test_fire_and_gas_render():

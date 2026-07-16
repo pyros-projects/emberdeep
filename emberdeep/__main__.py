@@ -28,8 +28,8 @@ MOVES = {
     KeySym.UP: (0, -1), KeySym.DOWN: (0, 1), KeySym.LEFT: (-1, 0), KeySym.RIGHT: (1, 0),
     KeySym.KP_8: (0, -1), KeySym.KP_2: (0, 1), KeySym.KP_4: (-1, 0), KeySym.KP_6: (1, 0),
     KeySym.KP_7: (-1, -1), KeySym.KP_9: (1, -1), KeySym.KP_1: (-1, 1), KeySym.KP_3: (1, 1),
-    KeySym.h: (-1, 0), KeySym.j: (0, 1), KeySym.k: (0, -1), KeySym.l: (1, 0),
-    KeySym.y: (-1, -1), KeySym.u: (1, -1), KeySym.b: (-1, 1), KeySym.n: (1, 1),
+    ord("h"): (-1, 0), ord("j"): (0, 1), ord("k"): (0, -1), ord("l"): (1, 0),
+    ord("y"): (-1, -1), ord("u"): (1, -1), ord("b"): (-1, 1), ord("n"): (1, 1),
 }
 
 def load_tileset() -> tcod.tileset.Tileset:
@@ -38,7 +38,7 @@ def load_tileset() -> tcod.tileset.Tileset:
         if not path or not os.path.exists(path):
             continue
         try:
-            return tcod.tileset.load_truetype_font(path, 14, 14)
+            return tcod.tileset.load_truetype_font(path, 9, 16)
         except Exception:
             continue
     raise SystemExit(
@@ -64,7 +64,7 @@ def main() -> None:
                 screens.draw_title(root)
             else:
                 render.render_map(state, root)
-                ui.draw_panel(state, root)
+                ui.draw_panel(root, state)
                 if mode == "inventory":
                     ui.draw_inventory(root, state, inv_purpose)
                 elif mode == "look":
@@ -93,14 +93,14 @@ def main() -> None:
                     if sym in (KeySym.RETURN, KeySym.KP_ENTER):
                         state = State()
                         mode = "play"
-                    elif sym == KeySym.q:
+                    elif sym == ord("q"):
                         return
 
                 elif mode in ("dead", "victory"):
                     mode = "title"
 
                 elif mode == "levelup":
-                    choice = {KeySym.s: "s", KeySym.a: "a", KeySym.v: "v"}.get(sym)
+                    choice = {ord("s"): "s", ord("a"): "a", ord("v"): "v"}.get(sym)
                     if choice:
                         state.apply_level_choice(choice)
                         if state.pending_levels <= 0:
@@ -116,15 +116,15 @@ def main() -> None:
                         spent = actions.descend(state)
                     elif sym == ord("<"):
                         spent = actions.ascend(state)
-                    elif sym == KeySym.g:
+                    elif sym == ord("g"):
                         spent = actions.pickup(state)
-                    elif sym == KeySym.i:
+                    elif sym == ord("i"):
                         inv_purpose = "use"
                         mode = "inventory"
-                    elif sym == KeySym.x:
+                    elif sym == ord("x"):
                         look = [state.player.x, state.player.y]
                         mode = "look"
-                    elif sym == KeySym.q:
+                    elif sym == ord("q"):
                         mode = "title"
                         continue
                     if spent:
@@ -146,7 +146,7 @@ def main() -> None:
                         dx, dy = MOVES[sym]
                         look[0] = min(max(look[0] + dx, 0), state.map.width - 1)
                         look[1] = min(max(look[1] + dy, 0), state.map.height - 1)
-                    elif sym in (KeySym.ESCAPE, KeySym.x, KeySym.RETURN):
+                    elif sym in (KeySym.ESCAPE, ord("x"), KeySym.RETURN):
                         mode = "play"
 
                 elif mode == "target":
@@ -155,7 +155,7 @@ def main() -> None:
                         dx, dy = MOVES[sym]
                         t["x"] = min(max(t["x"] + dx, 0), state.map.width - 1)
                         t["y"] = min(max(t["y"] + dy, 0), state.map.height - 1)
-                    elif sym in (KeySym.RETURN, KeySym.KP_ENTER, KeySym.f):
+                    elif sym in (KeySym.RETURN, KeySym.KP_ENTER, ord("f")):
                         item = t["item"]
                         state.targeting = None
                         mode = "play"
@@ -176,7 +176,7 @@ def main() -> None:
                     if sym == KeySym.ESCAPE:
                         state.pending_identify = None
                         mode = "play"
-                    elif sym == KeySym.d and inv_purpose == "use":
+                    elif sym == ord("d") and inv_purpose == "use":
                         inv_purpose = "drop"
                     elif ord("a") <= sym <= ord("z"):
                         idx = sym - ord("a")

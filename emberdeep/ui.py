@@ -34,31 +34,34 @@ def draw_panel(console, state) -> None:
     y0 = MAP_H
     console.print(0, y0, "-" * CONSOLE_W, fg=(60, 55, 52))
 
-    # HP bar
+    # stat row, built left-to-right so wide values can't jam into neighbors
+    x = 1
+    console.print(x, y0 + 1, "HP", fg=LOG_STALE)
+    x += 3
     bar_w = 20
     max_hp = p.max_hp + stats["hp_bonus"]
     ratio = p.hp / max(1, max_hp)
     filled = int(bar_w * ratio)
     bar = "#" * filled + "-" * (bar_w - filled)
-    console.print(1, y0 + 1, "HP ", fg=LOG_STALE)
-    console.print(4, y0 + 1, bar, fg=HP_GOOD if ratio > 0.35 else HP_BAD)
-    console.print(4 + bar_w + 1, y0 + 1, f"{p.hp}/{max_hp}", fg=LOG_FRESH)
+    console.print(x, y0 + 1, bar, fg=HP_GOOD if ratio > 0.35 else HP_BAD)
+    x += bar_w + 1
+    hp_text = f"{p.hp}/{max_hp}"
+    console.print(x, y0 + 1, hp_text, fg=LOG_FRESH)
+    x += len(hp_text) + 2
 
     # XP bar
     xp_ratio = p.xp / max(1, p.xp_next)
     xp_filled = int(12 * xp_ratio)
-    console.print(30, y0 + 1, "XP ", fg=LOG_STALE)
-    console.print(33, y0 + 1, "#" * xp_filled + "-" * (12 - xp_filled), fg=XP_BAR)
-    console.print(46, y0 + 1, f"LV {p.level}", fg=LOG_FRESH)
+    console.print(x, y0 + 1, "XP", fg=LOG_STALE)
+    x += 3
+    console.print(x, y0 + 1, "#" * xp_filled + "-" * (12 - xp_filled), fg=XP_BAR)
+    x += 12 + 1
+    console.print(x, y0 + 1, f"LV {p.level}", fg=LOG_FRESH)
 
-    status_bits = [k for k in ("burning", "poison", "confusion", "blind", "telepathy")
-                   if p.statuses.get(k, 0) > 0]
     right = f"STR {stats['strength']}  DEF {stats['defense']}  depth {state.depth}  turn {state.turn}"
-    if status_bits:
-        right = " ".join(status_bits).upper() + "  |  " + right
-    console.print(CONSOLE_W - len(right) - 1, y0 + 1, right, fg=WARN_COLOR if status_bits else LOG_STALE)
+    console.print(CONSOLE_W - len(right) - 1, y0 + 1, right, fg=LOG_STALE)
 
-    # equipment line
+    # equipment line; active statuses right-aligned on the same row
     eq = p.equipment or {}
     w = eq.get("weapon")
     a = eq.get("armor")
@@ -66,7 +69,13 @@ def draw_panel(console, state) -> None:
     gear = f"W: {w.name if w else 'fists'}   A: {a.name if a else '—'}   R: {', '.join(r.name for r in rings if r) or '—'}"
     if state.has_heart:
         gear += "   [EMBERHEART]"
-    console.print(1, y0 + 2, gear[: CONSOLE_W - 2], fg=GOLD if state.has_heart else LOG_STALE)
+    status_bits = [k.upper() for k in ("burning", "poison", "confusion", "blind", "telepathy")
+                   if p.statuses.get(k, 0) > 0]
+    status_text = " ".join(status_bits)
+    gear_w = CONSOLE_W - len(status_text) - 3 if status_text else CONSOLE_W - 2
+    console.print(1, y0 + 2, gear[:gear_w], fg=GOLD if state.has_heart else LOG_STALE)
+    if status_text:
+        console.print(CONSOLE_W - len(status_text) - 1, y0 + 2, status_text, fg=WARN_COLOR)
 
     # message log: newest at the bottom, older lines fading
     recent = state.messages[-LOG_LINES:]
