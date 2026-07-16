@@ -1,0 +1,4 @@
+tcod>=16.0
+# dev
+pytest>=8.0
+pillow>=10.0   # scripts/make_banner.py only
